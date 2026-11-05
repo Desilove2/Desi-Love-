@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -7,52 +6,213 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Desi Love</title>
 <style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #fff0f5;
-  text-align: center;
+*{box-sizing:border-box}
+body{
+ margin:0;font-family:Arial,sans-serif;
+ background:#fff0f5;color:#333;
 }
-header {
-  background: #e91e63;
-  color: white;
-  padding: 25px;
-  font-size: 28px;
-  font-weight: bold;
+header{
+ background:#e91e63;color:white;
+ padding:24px;text-align:center;
+ font-size:28px;font-weight:bold;
 }
-.container {
-  padding: 25px;
+.container{
+ max-width:430px;margin:25px auto;
+ padding:22px;background:white;
+ border-radius:15px;
+ box-shadow:0 3px 15px #ddd;
 }
-input {
-  width: 90%;
-  padding: 14px;
-  margin: 10px 0;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-sizing: border-box;
+h2{color:#e91e63;text-align:center}
+input{
+ width:100%;padding:14px;margin:9px 0;
+ border:1px solid #ddd;border-radius:8px;
+ font-size:16px;
 }
-button {
-  background: #e91e63;
-  color: white;
-  border: none;
-  padding: 14px;
-  width: 90%;
-  border-radius: 8px;
-  margin: 10px;
-  font-size: 16px;
+button{
+ width:100%;padding:14px;margin:8px 0;
+ background:#e91e63;color:white;
+ border:0;border-radius:8px;
+ font-size:16px;cursor:pointer;
 }
+.secondary{background:#555}
+.hidden{display:none}
+p{text-align:center}
+#message{color:#e91e63;font-size:14px}
 </style>
 </head>
 <body>
+
 <header>❤️ Desi Love ❤️</header>
-<div class="container">
-<h2>Welcome to Desi Love</h2>
+
+<div class="container" id="authBox">
+
+<div id="loginBox">
+<h2>Welcome Back</h2>
 <p>Find Your Perfect Partner</p>
-<input type="text" placeholder="Mobile Number or Email">
-<input type="password" placeholder="Password">
-<button onclick="alert('Login system Firebase se connect hoga')">Login</button>
-<button onclick="alert('Registration system Firebase se connect hoga')">Create Account</button>
-<p>Forgot Password?</p>
+
+<input id="loginEmail" type="email"
+placeholder="Email Address">
+
+<input id="loginPassword" type="password"
+placeholder="Password">
+
+<button onclick="login()">Login</button>
+<button class="secondary" onclick="showRegister()">
+Create Account
+</button>
+<button class="secondary" onclick="resetPassword()">
+Forgot Password?
+</button>
 </div>
+
+<div id="registerBox" class="hidden">
+<h2>Create Account</h2>
+
+<input id="name" placeholder="Your Full Name">
+
+<input id="mobile" type="tel"
+placeholder="Mobile Number">
+
+<input id="registerEmail" type="email"
+placeholder="Email Address">
+
+<input id="registerPassword" type="password"
+placeholder="Create Password">
+
+<button onclick="register()">Register Now</button>
+<button class="secondary" onclick="showLogin()">
+Back to Login
+</button>
+</div>
+
+<div id="profileBox" class="hidden">
+<h2>❤️ Welcome to Desi Love</h2>
+<p id="welcome"></p>
+<p>Your account is ready!</p>
+<button onclick="logout()">Logout</button>
+</div>
+
+<p id="message"></p>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<script>
+
+// अपनी Firebase Project Settings से ये जानकारी भरें
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "desi-love.firebaseapp.com",
+  databaseURL: "https://desi-love-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "desi-love",
+  storageBucket: "desi-love.firebasestorage.app",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.database();
+
+function msg(text){
+ document.getElementById("message").innerText=text;
+}
+
+function showRegister(){
+ document.getElementById("loginBox").classList.add("hidden");
+ document.getElementById("registerBox").classList.remove("hidden");
+ msg("");
+}
+
+function showLogin(){
+ document.getElementById("registerBox").classList.add("hidden");
+ document.getElementById("loginBox").classList.remove("hidden");
+ msg("");
+}
+
+function register(){
+ const name=document.getElementById("name").value.trim();
+ const mobile=document.getElementById("mobile").value.trim();
+ const email=document.getElementById("registerEmail").value.trim();
+ const password=document.getElementById("registerPassword").value;
+
+ if(!name || !mobile || !email || !password){
+  msg("सभी जानकारी भरें।");
+  return;
+ }
+
+ if(password.length<6){
+  msg("पासवर्ड कम से कम 6 अक्षर का होना चाहिए।");
+  return;
+ }
+
+ auth.createUserWithEmailAndPassword(email,password)
+ .then(cred=>{
+  return db.ref("users/"+cred.user.uid).set({
+   name:name,
+   mobile:mobile,
+   email:email,
+   createdAt:Date.now()
+  });
+ })
+ .then(()=>{
+  msg("आपका अकाउंट बन गया है!");
+ })
+ .catch(error=>msg(error.message));
+}
+
+function login(){
+ const email=document.getElementById("loginEmail").value.trim();
+ const password=document.getElementById("loginPassword").value;
+
+ if(!email || !password){
+  msg("ईमेल और पासवर्ड भरें।");
+  return;
+ }
+
+ auth.signInWithEmailAndPassword(email,password)
+ .then(()=>msg("Login सफल हुआ!"))
+ .catch(error=>msg(error.message));
+}
+
+function resetPassword(){
+ const email=document.getElementById("loginEmail").value.trim();
+
+ if(!email){
+  msg("पहले अपना ईमेल लिखें।");
+  return;
+ }
+
+ auth.sendPasswordResetEmail(email)
+ .then(()=>msg("Password Reset लिंक ईमेल पर भेज दिया गया है।"))
+ .catch(error=>msg(error.message));
+}
+
+function logout(){
+ auth.signOut();
+}
+
+auth.onAuthStateChanged(user=>{
+ if(user){
+  document.getElementById("loginBox").classList.add("hidden");
+  document.getElementById("registerBox").classList.add("hidden");
+  document.getElementById("profileBox").classList.remove("hidden");
+
+  db.ref("users/"+user.uid+"/name").once("value")
+  .then(snapshot=>{
+   document.getElementById("welcome").innerText=
+   "नमस्ते "+(snapshot.val() || user.email);
+  });
+
+ }else{
+  document.getElementById("profileBox").classList.add("hidden");
+  document.getElementById("loginBox").classList.remove("hidden");
+ }
+});
+
+</script>
 </body>
 </html>
