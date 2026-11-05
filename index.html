@@ -6,201 +6,246 @@
 <title>Desi Love</title>
 <style>
 *{box-sizing:border-box}
-body{
- margin:0;font-family:Arial,sans-serif;
- background:#fff0f5;color:#333;
-}
-header{
- background:#e91e63;color:white;
- padding:22px;text-align:center;
- font-size:28px;font-weight:bold;
-}
-.container{
- max-width:430px;margin:25px auto;
- padding:22px;background:white;
- border-radius:15px;
- box-shadow:0 3px 15px #ddd;
-}
-h2{color:#e91e63;text-align:center}
-input{
- width:100%;padding:14px;margin:9px 0;
- border:1px solid #ddd;border-radius:8px;
- font-size:16px;
-}
-button{
- width:100%;padding:14px;margin:8px 0;
- background:#e91e63;color:white;
- border:0;border-radius:8px;
- font-size:16px;
-}
-.secondary{background:#555}
+body{margin:0;font-family:Arial;background:#fff0f5;color:#333}
+header{background:#e91e63;color:white;padding:18px;text-align:center;font-size:25px}
+main{max-width:600px;margin:auto;padding:15px}
+.box{background:white;padding:18px;margin:14px 0;border-radius:12px;box-shadow:0 2px 8px #ddd}
+input,textarea,button{width:100%;padding:12px;margin:7px 0;border:1px solid #ddd;border-radius:7px;font-size:16px}
+button{background:#e91e63;color:white;border:0;font-weight:bold}
+button.secondary{background:#555}
+button.danger{background:#b00020}
 .hidden{display:none}
-p{text-align:center}
-#message{color:#e91e63;text-align:center}
+img{max-width:100%;border-radius:10px}
+.user{border-bottom:1px solid #ddd;padding:12px 0}
 </style>
 </head>
 <body>
-
 <header>❤️ Desi Love ❤️</header>
+<main>
 
-<div class="container">
-
-<div id="loginBox">
-<h2>Welcome Back</h2>
-<p>Find Your Perfect Partner</p>
-<input id="loginEmail" type="email" placeholder="Email Address">
-<input id="loginPassword" type="password" placeholder="Password">
+<div class="box" id="auth">
+<h3>Login / Register</h3>
+<input id="email" type="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
 <button onclick="login()">Login</button>
-<button class="secondary" onclick="showRegister()">Create Account</button>
+<button onclick="register()">New Account Register</button>
 <button class="secondary" onclick="resetPassword()">Forgot Password?</button>
+<p id="message"></p>
 </div>
 
-<div id="registerBox" class="hidden">
-<h2>Create Account</h2>
-<input id="name" placeholder="Full Name">
-<input id="mobile" type="tel" placeholder="Mobile Number">
-<input id="registerEmail" type="email" placeholder="Email Address">
-<input id="registerPassword" type="password" placeholder="Create Password">
-<button onclick="register()">Register Now</button>
-<button class="secondary" onclick="showLogin()">Back to Login</button>
+<div class="box hidden" id="profile">
+<h3>अपनी Profile बनाएं</h3>
+<input id="name" placeholder="आपका नाम">
+<input id="age" type="number" placeholder="उम्र">
+<input id="city" placeholder="शहर">
+<textarea id="bio" placeholder="अपने बारे में लिखें"></textarea>
+<input id="photo" type="file" accept="image/*">
+<button onclick="saveProfile()">Profile Save करें</button>
+<button class="secondary" onclick="logout()">Logout</button>
 </div>
 
-<div id="profileBox" class="hidden">
-<h2>❤️ Welcome to Desi Love</h2>
-<p id="welcome"></p>
-<button onclick="logout()">Logout</button>
+<div class="box hidden" id="home">
+<h3>Desi Love Members</h3>
+<label>उम्र के अनुसार खोजें</label>
+<input id="minAge" type="number" placeholder="कम उम्र">
+<input id="maxAge" type="number" placeholder="अधिक उम्र">
+<button onclick="loadUsers()">Search</button>
+<div id="members"></div>
+<button class="secondary" onclick="logout()">Logout</button>
 </div>
 
-<p id="mes
- databaseURL: "https://desi-love-default-rtdb.asia-southeast1.firebasedatabase.app",
- projectId: "desi-love",
- storageBucket: "desi-love.firebasestorage.app",
- messagingSenderId: "404032788324",
- appId: "1:404032788324:web:bd4bdd392d0b0d7d110c71",
- measurementId: "G-W7ZNCEKH0J"
-};
-
-firebase.initializeApp(firebaseConfig);
-
-const auth = firebase.auth();
-const db = firebase.database();
-
-function msg(text){
- document.getElementById("message").innerText=text;
-}
-
-function showRegister(){
- document.getElementById("loginBox").classList.add("hidden");
- document.getElementById("registerBox").classList.remove("hidden");
- msg("");
-}
-
-function showLogin(){
- document.getElementById("registerBox").classList.add("hidden");
- document.getElementById("loginBox").classList.remove("hidden");
- msg("");
-}
-
-async function register(){
- const name=document.getElementById("name").value.trim();
- const mobile=document.getElementById("mobile").value.trim();
- const email=document.getElementById("registerEmail").value.trim();
- const password=document.getElementById("registerPassword").value;
-
- if(!name || !mobile || !email || !password){
-  msg("सभी जानकारी भरें।");
-  return;
- }
-
- if(password.length<6){
-  msg("पासवर्ड कम से कम 6 अक्षर का होना चाहिए।");
-  return;
- }
-
- try{
-  const result=await auth.createUserWithEmailAndPassword(email,password);
-
-  await db.ref("users/"+result.user.uid).set({
-   name:name,
-   mobile:mobile,
-   email:email,
-   createdAt:Date.now()
-  });
-
-  msg("आपका अकाउंट बन गया है!");
- }catch(error){
-  msg(error.message);
- }
-}
-
-async function login(){
- const email=document.getElementById("loginEmail").value.trim();
- const password=document.getElementById("loginPassword").value;
-
- if(!email || !password){
-  msg("ईमेल और पासवर्ड भरें।");
-  return;
- }
-
- try{
-  await auth.signInWithEmailAndPassword(email,password);
-  msg("Login सफल हुआ!");
- }catch(error){
-  msg(error.message);
- }
-}
-
-async function resetPassword(){
- const email=document.getElementById("loginEmail").value.trim();
-
- if(!email){
-  msg("पहले अपना ईमेल लिखें।");
-  return;
- }
-
- try{
-  await auth.sendPasswordResetEmail(email);
-  msg("Password Reset लिंक ईमेल पर भेज दिया गया है।");
- }catch(error){
-  msg(error.message);
- }
-}
-
-function logout(){
- auth.signOut();
-}
-
-auth.onAuthStateChanged(async user=>{
- if(user){
-  document.getElementById("loginBox").classList.add("hidden");
-  document.getElementById("registerBox").classList.add("hidden");
-  document.getElementById("profileBox").classList.remove("hidden");
-
-  try{
-   const snapshot=await db.ref("users/"+user.uid).once("value");
-   const data=snapshot.val();
-   document.getElementById("welcome").innerText=
-    "नमस्ते "+(data?.name || user.email);
-  }catch(error){
-   document.getElementById("welcome").innerText=
-    "नमस्ते "+(user.email || "User");
-  }
- }else{
-  document.getElementById("profileBox").classList.add("hidden");
-  document.getElementById("loginBox").classList.remove("hidden");
- }
-});
-</script>
-</body>
-</html>
-sage"></p>
+<div class="box hidden" id="admin">
+<h3>🔐 Admin Panel</h3>
+<p>Admin: amitp4591@gmail.com</p>
+<div id="stats"></div>
+<div id="adminUsers"></div>
+<button class="secondary" onclick="logout()">Logout</button>
 </div>
+
+</main>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
 <script>
 const firebaseConfig = {
  apiKey: "AIzaSyDBrbQS2ND3_XQs8zkymvkAv5QZoFqHLL0",
  authDomain: "desi-love.firebaseapp.com",
+ databaseURL: "https://desi-love-default-rtdb.asia-southeast1.firebasedatabase.app",
+ projectId: "desi-love",
+ storageBucket: "desi-love.firebasestorage.app",
+ messagingSenderId: "404032788324",
+ appId: "1:404032788324:web:5b6d3ba391dbc5b2110c71"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.database();
+const storage = firebase.storage();
+
+const ADMIN_UID = "d7jogQsv1IPgEaW6igZcJzjMcgq1";
+const ADMIN_EMAIL = "amitp4591@gmail.com";
+
+function show(id){
+ ["auth","profile","home","admin"].forEach(x=>{
+ document.getElementById(x).classList.add("hidden");
+ });
+ document.getElementById(id).classList.remove("hidden");
+}
+
+function msg(t){
+ document.getElementById("message").innerText=t;
+}
+
+function login(){
+ const e=email.value.trim(),p=password.value;
+ auth.signInWithEmailAndPassword(e,p).catch(err=>msg(err.message));
+}
+
+function register(){
+ const e=email.value.trim(),p=password.value;
+ auth.createUserWithEmailAndPassword(e,p).catch(err=>msg(err.message));
+}
+
+function resetPassword(){
+ const e=email.value.trim();
+ if(!e){msg("पहले Email लिखें");return;}
+ auth.sendPasswordResetEmail(e)
+ .then(()=>msg("Password reset email भेज दिया गया है"))
+ .catch(err=>msg(err.message));
+}
+
+function logout(){auth.signOut();}
+
+auth.onAuthStateChanged(async user=>{
+ if(!user){show("auth");return;}
+ if(user.emailVerified===false){
+ // Email verification is optional in this version.
+ }
+ const snap=await db.ref("users/"+user.uid).once("value");
+ const data=snap.val();
+
+ if(data && data.blocked===true){
+ alert("आपका अकाउंट Admin द्वारा Block किया गया है");
+ await auth.signOut();return;
+ }
+
+ if(user.uid===ADMIN_UID && user.email===ADMIN_EMAIL){
+ show("admin");loadAdmin();return;
+ }
+
+ if(data){
+ show("home");
+ setPresence(user.uid);
+ loadUsers();
+ }else{
+ show("profile");
+ }
+});
+
+async function saveProfile(){
+ const user=auth.currentUser;
+ if(!user)return;
+
+ const n=document.getElementById("name").value.trim();
+ const a=Number(document.getElementById("age").value);
+ const c=document.getElementById("city").value.trim();
+ const b=document.getElementById("bio").value.trim();
+
+ if(!n||!a||!c){alert("नाम, उम्र और शहर भरें");return;}
+ if(a<18){alert("यह ऐप केवल 18 वर्ष या उससे अधिक उम्र के लिए है");return;}
+
+ let photoURL="";
+ const file=document.getElementById("photo").files[0];
+
+ try{
+ if(file){
+ const ref=storage.ref("profilePhotos/"+user.uid+"/"+Date.now());
+ await ref.put(file);
+ photoURL=await ref.getDownloadURL();
+ }
+
+ await db.ref("users/"+user.uid).update({
+ uid:user.uid,email:user.email,name:n,age:a,city:c,bio:b,
+ photo:photoURL,blocked:false,online:true,
+ updatedAt:firebase.database.ServerValue.TIMESTAMP
+ });
+
+ show("home");
+ setPresence(user.uid);
+ loadUsers();
+ }catch(e){alert(e.message);}
+}
+
+function setPresence(uid){
+ const ref=db.ref("users/"+uid);
+ ref.update({online:true});
+ ref.child("online").onDisconnect().set(false);
+}
+
+async function loadUsers(){
+ const snap=await db.ref("users").once("value");
+ const users=snap.val()||{};
+ const min=Number(document.getElementById("minAge").value)||18;
+ const max=Number(document.getElementById("maxAge").value)||100;
+ const area=document.getElementById("members");
+ area.innerHTML="";
+
+ Object.keys(users).forEach(uid=>{
+ const u=users[uid];
+ if(uid===auth.currentUser.uid||u.blocked||!u.age||u.age<min||u.age>max)return;
+ const div=document.createElement("div");
+ div.className="user";
+ const title=document.createElement("b");
+ title.textContent=(u.name||"Member")+" • "+u.age;
+ const detail=document.createElement("p");
+ detail.textContent=(u.city||"")+" — "+(u.bio||"");
+ div.append(title,detail);
+ if(u.photo){
+ const img=document.createElement("img");
+ img.src=u.photo;img.alt="Profile photo";
+ div.append(img);
+ }
+ area.append(div);
+ });
+}
+
+async function loadAdmin(){
+ const snap=await db.ref("users").once("value");
+ const users=snap.val()||{};
+ const ids=Object.keys(users);
+ const online=ids.filter(id=>users[id].online===true).length;
+ document.getElementById("stats").textContent=
+ "कुल Users: "+ids.length+" | Online: "+online;
+
+ const list=document.getElementById("adminUsers");
+ list.innerHTML="";
+
+ ids.forEach(uid=>{
+ const u=users[uid];
+ const div=document.createElement("div");
+ div.className="user";
+ const info=document.createElement("p");
+ info.textContent=(u.name||"No Name")+" | "+(u.email||"")+" | "+(u.city||"");
+ const btn=document.createElement("button");
+ btn.textContent=u.blocked?"Unblock":"Block";
+ btn.className=u.blocked?"secondary":"danger";
+ btn.onclick=()=>changeBlock(uid,!u.blocked);
+ div.append(info,btn);
+ list.append(div);
+ });
+}
+
+async function changeBlock(uid,value){
+ if(!auth.currentUser||auth.currentUser.uid!==ADMIN_UID){
+ alert("Admin access required");return;
+ }
+ if(uid===ADMIN_UID){alert("Admin को Block नहीं कर सकते");return;}
+ await db.ref("users/"+uid+"/blocked").set(value);
+ loadAdmin();
+}
+</script>
+</body>
+</html>
